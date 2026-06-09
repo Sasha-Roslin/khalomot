@@ -1,0 +1,432 @@
+{
+  "tools": [
+    {
+      "name": "shahar_load_data",
+      "description": "Loads, merges, and cleans raw geochemistry, mineralogy, and coordinate datasets from Google Cloud Storage (GCS) or local templates into a Shahar session. Triggers the data-ingestion pipeline.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "description": "Unique session UUID to track the data pipeline context."
+          },
+          "primary_path": {
+            "type": "string",
+            "description": "Cloud or local path to primary assays spreadsheet (contains major and trace element geochemical data).",
+            "default": "primary.xlsx"
+          },
+          "minory_path": {
+            "type": "string",
+            "description": "Optional path to minor trace elements spreadsheet (TOC, TCM, Hg, Sb, As, Tl pathfinder suites).",
+            "default": "minory.xlsx"
+          },
+          "coordinates_path": {
+            "type": "string",
+            "description": "Optional path to spatial coordinates spreadsheet (X, Y, Z depth profiles).",
+            "default": "coordinates.xlsx"
+          },
+          "use_clr": {
+            "type": "boolean",
+            "description": "Whether to apply Centered Log-Ratio (CLR) transformation to handle compositional geochemistry constraints.",
+            "default": false
+          }
+        },
+        "required": ["session_id", "primary_path"]
+      },
+      "geological_context": "Initializes the mineral exploration dataset. Essential first step to prepare the raw assay spreadsheets for high-dimensional clustering."
+    },
+    {
+      "name": "shahar_run_clustering",
+      "description": "Trains a traditional k-Means or Self-Organizing Map (SOM) clustering pipeline on the loaded dataset to segment ore into distinct geochemical and mineralogical zones.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "description": "Active Shahar session ID."
+          },
+          "method": {
+            "type": "string",
+            "enum": ["kmeans", "som"],
+            "description": "Clustering algorithm to use."
+          },
+          "n_clusters": {
+            "type": "integer",
+            "description": "Number of clusters. If using SOM, represents the grid clusters size.",
+            "default": 5
+          },
+          "use_pca": {
+            "type": "boolean",
+            "description": "Whether to run PCA dimensionality reduction before clustering to isolate key geological vectors.",
+            "default": true
+          },
+          "n_components": {
+            "type": "integer",
+            "description": "Number of principal components to keep (null for auto)."
+          }
+        },
+        "required": ["session_id", "method"]
+      },
+      "geological_context": "Calibrates geological zones. Useful for separating unaltered limestone, silicified jasperoids, argillic shales, and pyritic feeder conduits based on elemental associations."
+    },
+    {
+      "name": "shahar_apply_som",
+      "description": "Applies the calibrated PCA-SOM or k-Means clustering model to unseen, raw production (apply.xlsx) samples in the active session.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "description": "Active session ID containing the trained model."
+          },
+          "data_mode": {
+            "type": "string",
+            "enum": ["primary_only", "primary_minory", "primary_minory_coordinates"],
+            "description": "Scope of the production data columns.",
+            "default": "primary_minory"
+          }
+        },
+        "required": ["session_id"]
+      },
+      "geological_context": "Partitions unseen exploration drill holes or production stockpiles into predicted geo-metallurgical domains."
+    },
+    {
+      "name": "kokhav_load_data",
+      "description": "Loads and merges geochemical assays, QEMSCAN mineral percentages, and recovery outcomes inside a Kokhav session for machine learning modeling.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "description": "Active Kokhav session UUID."
+          },
+          "primary_path": {
+            "type": "string",
+            "description": "Path to primary assays spreadsheet.",
+            "default": "primary.xlsx"
+          },
+          "minory_path": {
+            "type": "string",
+            "description": "Path to minor/pathfinder elements spreadsheet (Au, As, Sb, Hg, Tl, TOC, TCM).",
+            "default": "minory.xlsx"
+          },
+          "qemscan_path": {
+            "type": "string",
+            "description": "Path to mineralogical percentages sheet (QEMSCAN: pyrite, quartz, carbonates, clays).",
+            "default": "qemscan.xlsx"
+          },
+          "recovery_path": {
+            "type": "string",
+            "description": "Path to recovery and grinding indices sheet (calibration outcomes).",
+            "default": "recovery.xlsx"
+          }
+        },
+        "required": ["session_id", "primary_path"]
+      },
+      "geological_context": "Registers historical calibration core assays and QEMSCAN mineralogies to train regression models for metal recovery and comminution hardness."
+    },
+    {
+      "name": "kokhav_predict",
+      "description": "Applies trained metallurgical machine learning models to predict comminution grinding hardness (BWI) or flotation recovery for unseen samples.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "description": "Active Kokhav session ID."
+          },
+          "model_key": {
+            "type": "string",
+            "description": "Identifier of the trained ML model, e.g. 'recovery_random_forest' or 'grinding_xgboost'."
+          },
+          "target_dataset": {
+            "type": "string",
+            "description": "Target dataset column block inside the session (e.g. 'merged' or 'engineered').",
+            "default": "merged"
+          },
+          "handle_missing": {
+            "type": "string",
+            "enum": ["drop", "impute"],
+            "description": "Handling strategy for missing elements (impute uses Clarke background values).",
+            "default": "impute"
+          }
+        },
+        "required": ["session_id", "model_key"]
+      },
+      "geological_context": "Provides critical commercial insights by predicting comminution energy costs and metal recoveries prior to actual physical milling."
+    },
+    {
+      "name": "kokhav_shap_plots",
+      "description": "Computes SHAP feature importance values and returns a beeswarm visualization explaining why certain mineral assemblages drive recovery.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "description": "Active Kokhav session."
+          },
+          "model_key": {
+            "type": "string",
+            "description": "Trained ML model key."
+          },
+          "top_n": {
+            "type": "integer",
+            "description": "Number of top features to report in the importance report.",
+            "default": 10
+          }
+        },
+        "required": ["session_id", "model_key"]
+      },
+      "geological_context": "Validates machine learning logic by exposing how mineral assemblages (e.g. illite clay penalties, pyrite locking) mathematically drive flotation recovery."
+    },
+    {
+      "name": "keter_classify_tectonic",
+      "description": "Classifies the geotectonic basin environment (e.g. Foreland Basin, Passive Margin) based on raw trace element geochemistry and coordinates.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "lat": {
+            "type": "number",
+            "description": "Latitude coordinate."
+          },
+          "lon": {
+            "type": "number",
+            "description": "Longitude coordinate."
+          },
+          "fingerprint": {
+            "type": "object",
+            "description": "Key-value mapping of element concentrations (ppm) or Enrichment Factors (EF).",
+            "additionalProperties": { "type": "number" }
+          },
+          "strict_lithology": {
+            "type": "boolean",
+            "description": "If true, enforces strict Layer -1 lithological zero-masking. If false, opens Hybrid Mode.",
+            "default": true
+          }
+        },
+        "required": ["lat", "lon", "fingerprint"]
+      },
+      "geological_context": "Determines the fundamental geodynamic setting. Essential for setting the Bayesian background Clarkes and establishing tectonic control priors."
+    },
+    {
+      "name": "keter_classify_ore",
+      "description": "Evaluates geochemical fingerprint against Bayesian ore subtype cartridges to classify incoming ore into mineralized subcategories (high_carbon, low_carbon, argillite).",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "description": "Active Keter session UUID."
+          },
+          "fingerprint": {
+            "type": "object",
+            "description": "Key-value mapping of elements (Au, As, Sb, Hg, Tl, TOC, TCM, carbonates).",
+            "additionalProperties": { "type": "number" }
+          },
+          "strict_lithology": {
+            "type": "boolean",
+            "description": "Enforces strict geolithological filtering.",
+            "default": true
+          }
+        },
+        "required": ["session_id", "fingerprint"]
+      },
+      "geological_context": "Determines the precise ore alteration profile. The resulting class (e.g. double refractory high-carbon) directly overrides roasting optimization constraints."
+    },
+    {
+      "name": "teomim_activate_nodes",
+      "description": "The Geo-Thermo Handshake endpoint. Automatically overrides roaster constraints and reward weights based on Keter's geological ore classification.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "ore_type": {
+            "type": "string",
+            "enum": ["high_carbon", "low_carbon", "argillite"],
+            "description": "Ore subtype classification from Keter."
+          }
+        },
+        "required": ["ore_type"]
+      },
+      "geological_context": "Links geology directly to metallurgical control. High-carbon ore injects penalties for low temperature to burn off carbon, and argillite ore lowers sintering thresholds by 20°C."
+    },
+    {
+      "name": "teomim_optimize_thermo",
+      "description": "Runs the Bayesian Kiln Optimizer to recommend the optimal roaster action vectors (feed rates, particle size, burner tilt, excess air) that maximize gold recovery while satisfying all physical safety bounds.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "description": "Active session ID."
+          },
+          "goals": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "variable": { "type": "string", "description": "Physics variable, e.g. 'gold_recovery_pct' or 'blockage_risk'." },
+                "target": { "type": "string", "enum": ["maximize", "minimize"], "description": "Optimization target." },
+                "weight": { "type": "number", "description": "Goal importance weighting." }
+              },
+              "required": ["variable", "target", "weight"]
+            },
+            "description": "List of optimization targets."
+          },
+          "constraints": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "variable": { "type": "string", "description": "Physics variable, e.g. 'wall_temp_c' or 'porosity_loss_risk'." },
+                "condition": { "type": "string", "enum": ["<", "<=", ">", ">="], "description": "Inequality operator." },
+                "threshold": { "type": "number", "description": "Safety threshold value." },
+                "penalty": { "type": "number", "description": "Multiplier penalty for violation." }
+              },
+              "required": ["variable", "condition", "threshold", "penalty"]
+            },
+            "description": "List of physical or environmental safety constraints."
+          },
+          "baseline_readings": {
+            "type": "object",
+            "description": "Current physical readings of the roaster."
+          },
+          "n_iterations": {
+            "type": "integer",
+            "description": "Number of optimization calls (50 is recommended for Bayesian).",
+            "default": 50
+          },
+          "engine": {
+            "type": "string",
+            "enum": ["bayesian", "differential_evolution"],
+            "description": "Optimizer engine.",
+            "default": "bayesian"
+          },
+          "use_adaptive_reward": {
+            "type": "boolean",
+            "description": "Enables historical memory penalties to prevent physical oscillating loops.",
+            "default": true
+          }
+        },
+        "required": ["session_id", "goals"]
+      },
+      "geological_context": "Computes the final operational recommendations for the roaster plant, finding the sweet spot between full oxidation and thermal sintering."
+    },
+    {
+      "name": "teomim_interaction_heatmap",
+      "description": "Computes a 2D interaction grid sweeping two kiln parameters (e.g. feed_rate_tph, excess_air_pct, particle_p80_um, tertiary_air_temp_c) against an output variable (e.g. gold_recovery_pct, blockage_risk, sintering_risk, as2o3_emissions_mg_nm3) for precise plotting.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "description": "Active session context ID."
+          },
+          "param_a": {
+            "type": "string",
+            "description": "First process variable to sweep.",
+            "default": "feed_rate_tph"
+          },
+          "param_b": {
+            "type": "string",
+            "description": "Second process variable to sweep.",
+            "default": "particle_p80_um"
+          },
+          "output_variable": {
+            "type": "string",
+            "description": "Metallurgical output or risk indicator to map.",
+            "default": "blockage_risk"
+          },
+          "n_a": {
+            "type": "integer",
+            "description": "Number of grid divisions for variable A.",
+            "default": 20
+          },
+          "n_b": {
+            "type": "integer",
+            "description": "Number of grid divisions for variable B.",
+            "default": 20
+          }
+        },
+        "required": ["session_id"]
+      },
+      "geological_context": "Maps non-linear physical interactions (e.g., how particle size limits gas diffusion or causes sintering) to assist in roaster operating envelope definition."
+    },
+    {
+      "name": "teomim_pareto_frontier",
+      "description": "Discovers the Pareto frontier trade-offs between two competing objectives (e.g., maximizing gold_recovery_pct vs minimizing as2o3_emissions_mg_nm3, or minimizing blockage_risk vs maximizing heat_efficiency_pct). Useful for industrial multiobjective trade-offs.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "description": "Active session context ID."
+          },
+          "objective_a": {
+            "type": "string",
+            "description": "First target objective variable.",
+            "default": "blockage_risk"
+          },
+          "objective_b": {
+            "type": "string",
+            "description": "Second target objective variable.",
+            "default": "heat_efficiency_pct"
+          },
+          "direction_a": {
+            "type": "string",
+            "enum": ["minimize", "maximize"],
+            "description": "Target direction for objective A.",
+            "default": "minimize"
+          },
+          "direction_b": {
+            "type": "string",
+            "enum": ["minimize", "maximize"],
+            "description": "Target direction for objective B.",
+            "default": "maximize"
+          },
+          "n_samples": {
+            "type": "integer",
+            "description": "Number of Monte Carlo Latin Hypercube samples.",
+            "default": 2000
+          }
+        },
+        "required": ["session_id"]
+      },
+      "geological_context": "Resolves multi-objective industrial dilemmas by locating non-dominated, Pareto-optimal operational envelopes that balance commercial efficiency and strict environmental compliance."
+    },
+    {
+      "name": "search_historical_logs",
+      "description": "Searches the historical kiln incident reports and operational logs for past failures, sintering collapses, or environmental emissions exceedances linked to specific ore/mineral subtypes at Nevada Carlin sites.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Keywords or ore types to search for (e.g., 'high carbon', 'argillite', 'sintering', 'arsenic')."
+          }
+        },
+        "required": ["query"]
+      },
+      "geological_context": "Enables proactive RAG-based operational safety checks. Ensures the agent reviews and learns from past physical malfunctions before executing new thermodynamic optimizations."
+    },
+    {
+      "name": "run_multi_agent_negotiation",
+      "description": "Triggers the cooperative/conflicting multi-agent ore negotiation between the Geologist Agent (seeking highest Au grades) and the Metallurgist Agent (seeking safe roaster bounds). Computes the optimal blend, resolves trade-offs, and outputs a step-by-step bargaining transcript.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "description": "Active session UUID."
+          },
+          "target_recovery": {
+            "type": "number",
+            "description": "Desired minimum target gold recovery percentage.",
+            "default": 90.0
+          }
+        },
+        "required": ["session_id"]
+      },
+      "geological_context": "Resolves agent-to-agent criteria. Geologist and Metallurgist bargain dynamically to balance maximum grade feed against environmental and sintering bounds."
+    }
+  ]
+}

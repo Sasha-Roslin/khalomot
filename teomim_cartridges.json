@@ -1,0 +1,448 @@
+{
+  "metadata": {
+    "version": "1.0",
+    "domain": "thermodynamics",
+    "world": "Teomim",
+    "process_type": "gold_roasting",
+    "description": "Process cartridges for Carlin-type refractory gold ore roasting. Pyrite oxidation is EXOTHERMIC — the roaster generates its own heat. Primary risk is thermal runaway causing sintering and porosity loss, which kills cyanide gold recovery.",
+    "author": "Kubaba Labs Inc.",
+    "date_created": "2026-05-07",
+    "source": "Published Arrhenius parameters (Jorgensen 1981, Hu et al. 2006), Nevada Gold Mines operational ranges"
+  },
+
+  "kiln_design": {
+    "_comment": "Circulating Fluidized Bed (CFB) roaster design — typical Carlin-type gold operation. Conceptually maps to Lahav's stage model: Stages 1-3 = preheating/drying, Stage 4 = roasting zone, Stage 5 = cooling.",
+
+    "stages": {
+      "1": {"temp_c": 120,  "pressure_pa": -2500},
+      "2": {"temp_c": 280,  "pressure_pa": -2200},
+      "3": {"temp_c": 420,  "pressure_pa": -1800},
+      "4": {"temp_c": 620,  "pressure_pa": -1400},
+      "5": {"temp_c": 500,  "pressure_pa": -1000}
+    },
+
+    "calciner": {
+      "_comment": "In gold roasting, this is the main roasting chamber (CFB reactor)",
+      "temp_c": 650,
+      "pressure_pa": -1200,
+      "diameter_m": 8.0,
+      "riser_height_m": 25,
+      "cone_length_m": 2.5,
+      "burners": {
+        "total": 4,
+        "aperture_cone": 2,
+        "cylindrical_wall": 2,
+        "_comment": "Startup burners only — once pyrite ignites, the reaction sustains itself (exothermic)"
+      },
+      "calciner_gas_nm3h_min": 3000,
+      "calciner_gas_nm3h_max": 5000
+    },
+
+    "aperture": {
+      "diameter_m": 2.0,
+      "_comment": "Larger aperture than lime — lower gas velocity needed for fluidization"
+    },
+
+    "feed_composition": {
+      "fes2_pct": 8.0,
+      "as_pct": 0.8,
+      "au_ppm": 5.0,
+      "carbon_pct": 2.5,
+      "sio2_pct": 45.0,
+      "al2o3_pct": 12.0,
+      "fe2o3_pct": 6.0,
+      "moisture_pct": 8.0,
+      "_comment": "Typical Carlin-type refractory ore: gold locked in arsenian pyrite, high silica host rock"
+    },
+
+    "feed": {
+      "max_dry_feed_tph": 150,
+      "moisture_range_pct": [5, 12],
+      "moisture_predominant_pct": 8,
+      "grind_p80_um_typical": 75,
+      "_comment": "Finer grind than lime — need liberation of sulfide inclusions"
+    },
+
+    "air_flows": {
+      "primary_air_nm3h": 8000,
+      "primary_air_temp_c": 25,
+      "primary_air_comment": "Fluidization air — blown through distributor plate at bottom of CFB",
+
+      "secondary_air_nm3h": 35000,
+      "secondary_air_comment": "Staged combustion air injected above bed to control temperature",
+
+      "tertiary_air_nm3h": 15000,
+      "tertiary_air_actual_m3h": 22000,
+      "tertiary_air_temp_c": 200,
+      "tertiary_air_comment": "Quench air for temperature control — critical for preventing sintering",
+
+      "total_system_nm3h": 58000,
+      "total_system_comment": "Lower total flow than lime — CFB operates at lower velocities"
+    },
+
+    "particle": {
+      "rho_particle": 2800,
+      "Cd": 0.8,
+      "rho_gas_650c": 0.38,
+      "rho_gas_1000c": 0.27,
+      "rho_gas_downpipe": 0.6,
+      "_comment": "Denser than lime particles — sulfide ore vs porous quicklime"
+    },
+
+    "thermal": {
+      "total_gas_nm3h": 4000,
+      "calorific_value_mj_nm3": 39.5,
+      "rotary_burner_gas_nm3h": 0,
+      "calciner_burner_gas_nm3h": 4000,
+      "dH_reaction_kj_kg": -3400,
+      "reaction_sign": "exothermic",
+      "dH_evaporation_kj_kg": 2450,
+      "Cp_ore_kj_kgK": 0.85,
+      "heat_input_mw": 43.9,
+      "_comment": "EXOTHERMIC: 4FeS2 + 11O2 -> 2Fe2O3 + 8SO2. dH = -3400 kJ/kg sulfide. Startup burners only needed to reach ignition temperature (~450C). Once pyrite ignites, reaction is self-sustaining."
+    },
+
+    "rotary_kiln": {
+      "_comment": "Not applicable — CFB roaster, not rotary kiln",
+      "length_m": 0,
+      "diameter_m": 0,
+      "burner_gas_nm3h": 0,
+      "lime_discharge_temp_c": 0
+    },
+
+    "flue_gas_exit": {
+      "flow_m3h_at_200c": 120000,
+      "exit_temp_c": 200,
+      "composition": {
+        "SO2_ppm": 3500,
+        "CO2_pct": 8.0,
+        "N2_pct": 68.0,
+        "H2O_pct": 12.0,
+        "O2_pct": 8.0,
+        "As2O3_mg_nm3": 15
+      },
+      "scrubber_so2_removal_pct": 98,
+      "stack_height_m": 80,
+      "_comment": "SO2 and As2O3 must be scrubbed. Nevada emission limits: SO2 < 200 ppm after scrubbing, As < 0.5 mg/Nm3."
+    },
+
+    "fuel_profiles": {
+      "gas":    {"H2O_pct": 12.0, "CO2_pct": 8.0, "ash_pct": 0.1, "flame_luminosity": 0.2},
+      "diesel": {"H2O_pct": 8.0,  "CO2_pct": 10.0, "ash_pct": 0.5, "flame_luminosity": 0.6},
+      "self":   {"H2O_pct": 12.0, "CO2_pct": 8.0, "ash_pct": 0.0, "flame_luminosity": 0.0,
+                 "_comment": "Self-sustaining: exothermic reaction provides all heat after ignition"}
+    },
+
+    "allowed_fuels": ["gas", "diesel", "self"],
+
+    "bounds": {
+      "operational": {
+        "feed_rate_tph":     [50.0, 150.0],
+        "particle_p80_um":   [38.0, 150.0],
+        "excess_air_pct":    [10.0, 50.0],
+        "insulation_rvalue": [0.0, 3.0]
+      },
+      "structural": {
+        "pipe_position_m":       [1.0, 8.0],
+        "burner_tilt_deg":       [0.0, 30.0],
+        "tertiary_air_temp_c":   [25.0, 400.0]
+      }
+    }
+  },
+
+  "equations": {
+    "_comment": "Gold roasting equations. Key difference: Arrhenius kinetics for pyrite oxidation and exothermic heat generation. Sintering threshold drops from 1100C (lime) to 700C (gold porosity critical).",
+
+    "baker_equilibrium": {
+      "description": "Not applicable to gold roasting — no CaCO3 equilibrium. Replaced by pyrite ignition threshold.",
+      "A": 0,
+      "B": 1,
+      "_comment": "Placeholder — gold uses Arrhenius kinetics instead"
+    },
+
+    "terminal_velocity": {
+      "description": "Terminal settling velocity for ore particles in flue gas",
+      "formula": "v_t = sqrt(4 * g * d * rho_p / (3 * Cd * rho_gas))",
+      "g": 9.81,
+      "source": "Standard drag equation for angular ore particles"
+    },
+
+    "reaction_kinetics": {
+      "description": "Pyrite oxidation kinetics — Arrhenius model. Rate accelerates exponentially above ignition temperature (~450C). Self-sustaining above 500C.",
+      "kinetics_type": "arrhenius",
+      "arrhenius_A": 1.2e8,
+      "arrhenius_Ea": 83000,
+      "R": 8.314,
+      "ignition_temp_c": 450,
+      "k_formation": 0.0,
+      "surface_reference_um": 75.0,
+      "h2o_scale": 10.0,
+      "source": "Jorgensen (1981), Hu et al. (2006) — pyrite oxidation Arrhenius parameters"
+    },
+
+    "porosity_model": {
+      "description": "Ore porosity loss from sintering. Above 700C, pores close and cyanide cannot reach gold. Time-at-temperature integral determines porosity loss.",
+      "critical_temp_c": 700,
+      "slope": 0.15,
+      "reference_time_s": 5.0,
+      "max_recovery_pct": 95.0,
+      "recovery_loss_per_porosity": 0.8,
+      "source": "Thomas (2005) — gold recovery vs calcine porosity correlation"
+    },
+
+    "environmental": {
+      "description": "SO2 and arsenic emission constraints for Nevada operations",
+      "so2_production_kg_per_ton_sulfide": 1.28,
+      "so2_limit_ppm_stack": 200,
+      "as2o3_limit_mg_nm3": 0.5,
+      "scrubber_efficiency_pct": 98,
+      "source": "Nevada DEP Title V permit limits"
+    },
+
+    "sintering_sigmoid": {
+      "description": "Sigmoid activation for sintering/porosity loss. MUCH lower threshold than lime (700C vs 1100C). In gold roasting, sintering = death of gold recovery.",
+      "threshold_c": 700,
+      "slope": 0.15,
+      "source": "Ore sintering begins at 680-720C — pore closure kills cyanide penetration"
+    },
+
+    "wall_temperature": {
+      "description": "Roasting zone temperature — driven by exothermic reaction heat, feed rate (more sulfide = more heat), and air staging for temperature control",
+      "convective_base_c": 550,
+      "radiant_scale": 40,
+      "feed_cooling_scale": -20,
+      "feed_cooling_reference_tph": 100,
+      "feed_cooling_range_tph": 50,
+      "insulation_gain_scale": 10,
+      "tert_air_reference_c": 200,
+      "tert_air_scale": -0.05,
+      "tert_air_comment": "COOLING: In gold roasting, tertiary air is used to QUENCH temperature to prevent sintering. Negative scale = more air = cooler.",
+      "excess_air_reference_pct": 30,
+      "excess_air_cooling_scale": 2.0,
+      "exothermic_gain_per_fes2_pct": 12.0,
+      "exothermic_comment": "Each 1% FeS2 in the blended feed raises wall temp by 12C via exothermic pyrite oxidation self-heating. At 8% FeS2: +96C above convective base.",
+      "clamp_min_c": 450,
+      "clamp_max_c": 800,
+      "source": "CFB roaster temperature model — exothermic reaction drives temperature UP"
+    },
+
+    "gas_velocity": {
+      "description": "Gas velocity in CFB riser",
+      "base_ms": 8,
+      "excess_air_scale": 6,
+      "excess_air_max_pct": 50,
+      "clamp_min_ms": 5,
+      "clamp_max_ms": 20,
+      "source": "CFB fluidization model"
+    },
+
+    "tertiary_air_effect": {
+      "description": "Quench air effect on roasting temperature — OPPOSITE of lime (cooling, not heating)",
+      "reference_temp_c": 200,
+      "max_temp_c": 400,
+      "delta_T_max_K": -30,
+      "source": "Quench air mixing model"
+    },
+
+    "pressure_model": {
+      "description": "Pressure differential in CFB loop",
+      "rho_bulk_kg_m3": 2200.0,
+      "source": "Sulfide ore bulk density"
+    },
+
+    "moisture": {
+      "typical_fraction": 0.08,
+      "source": "Feed moisture ~8%"
+    },
+
+    "stage_temperature": {
+      "description": "Stage temperatures — gold roasting operates at lower temperatures than lime",
+      "feed_reference_tph": 100,
+      "feed_sensitivity_range_tph": 50,
+      "feed_sensitivity_delta_c": 15,
+      "insulation_base_factor": 2,
+      "stage_normalizer": 5,
+      "source": "CFB stage temperature model"
+    },
+
+    "calcination_gas": {
+      "description": "In gold roasting: SO2 gas production from sulfide oxidation",
+      "co2_production_nm3h_at_ref_feed": 12000,
+      "co2_reference_feed_tph": 100,
+      "co2_aperture_fraction": 0.20,
+      "rotary_burner_aperture_fraction": 0.0,
+      "fuel_combustion_expansion_factor": 8.0,
+      "source": "Mass balance: FeS2 oxidation at 100 tph produces 12000 Nm3/h SO2+CO2"
+    },
+
+    "heat_balance": {
+      "description": "Heat balance for exothermic roasting — reaction ADDS heat instead of consuming it",
+      "insulation_efficiency_per_rvalue": 0.01,
+      "excess_air_loss_factor": 0.06,
+      "excess_air_reference_pct": 30,
+      "tert_air_recovery_factor": -0.04,
+      "tert_air_reference_c": 200,
+      "_comment": "Negative tert_air_recovery_factor: quench air REMOVES heat (intentional)",
+      "source": "CFB thermal engineering"
+    },
+
+    "abrasion": {
+      "description": "Wall abrasion — less relevant in CFB than rotary kiln",
+      "k_abrasion": 0.002,
+      "velocity_reference_ms": 15.0,
+      "source": "CFB erosion model"
+    },
+
+    "chemical_risk_sigmoid": {
+      "description": "In gold roasting: chemical risk = incomplete oxidation (sulfur residue too high)",
+      "scale": 5,
+      "source": "Empirical"
+    },
+
+    "aero_risk_sigmoid": {
+      "description": "Aerodynamic risk in CFB — particle elutriation",
+      "entrainment_offset": 1.5,
+      "pre_scale": 0.10,
+      "scale": 2,
+      "source": "CFB fluidization model"
+    },
+
+    "pressure_accretion": {
+      "description": "Pressure drop from agglomeration in CFB",
+      "base_delta_p_kpa": 2.0,
+      "accretion_scale": 3,
+      "source": "CFB pressure model"
+    }
+  },
+
+  "cartridges": {
+    "pyrite_oxidation": {
+      "full_name": "Pyrite Oxidation (Primary Reaction)",
+      "description": "4FeS2 + 11O2 -> 2Fe2O3 + 8SO2 + HEAT. Exothermic reaction — self-sustaining above 500C. Gold is liberated from the sulfide lattice during oxidation, making it accessible to cyanide leaching.",
+      "governing_reaction": "4FeS2 + 11O2 -> 2Fe2O3 + 8SO2 (dH = -3400 kJ/kg sulfide)",
+      "ignition_temperature_c": 450,
+      "optimal_range_c": [580, 680],
+      "danger_zone_c": [700, 800],
+      "required_edges": [
+        ["Feed_Sulfide_Content", "Reaction_Heat_Generation"],
+        ["Reaction_Heat_Generation", "Temperature_Rise"],
+        ["Temperature_Rise", "Accelerated_Oxidation"],
+        ["Accelerated_Oxidation", "Thermal_Runaway_Risk"],
+        ["Excess_Air", "Oxygen_Availability"],
+        ["Oxygen_Availability", "Oxidation_Rate"],
+        ["Oxidation_Rate", "Sulfur_Residue"],
+        ["Sulfur_Residue", "Gold_Recovery"],
+        ["Feed_Rate", "Heat_Load"],
+        ["Heat_Load", "Temperature_Rise"],
+        ["Quench_Air", "Temperature_Control"],
+        ["Temperature_Control", "Sintering_Prevention"]
+      ],
+      "forbidden_edges": [
+        ["Low_Temperature", "Complete_Oxidation"],
+        ["High_Sulfide", "Low_Heat_Generation"],
+        ["Low_Oxygen", "Fast_Oxidation"]
+      ],
+      "key_indicators": [
+        "Temperature_Above_700C_Danger",
+        "Sulfur_Residue_Above_0.5_Pct",
+        "SO2_Spike_In_Flue_Gas",
+        "Oxygen_Below_5_Pct_In_Bed"
+      ]
+    },
+
+    "sintering_porosity_loss": {
+      "full_name": "Sintering and Porosity Loss (Gold Recovery Killer)",
+      "description": "Above 700C, ore particles sinter (pores close). Cyanide solution cannot penetrate sintered calcine, destroying gold recovery. This is the PRIMARY constraint in Carlin gold roasting — unlike lime where sintering threshold is 1100C.",
+      "critical_temperature_c": 700,
+      "recovery_impact": "Every 10C above 700C reduces gold recovery by ~3-5%",
+      "required_edges": [
+        ["High_Temperature", "Pore_Closure"],
+        ["Pore_Closure", "Reduced_Porosity"],
+        ["Reduced_Porosity", "Low_Cyanide_Penetration"],
+        ["Low_Cyanide_Penetration", "Low_Gold_Recovery"],
+        ["Residence_Time", "Time_At_Temperature"],
+        ["Time_At_Temperature", "Cumulative_Sintering"],
+        ["Exothermic_Heat", "Temperature_Spike"],
+        ["Temperature_Spike", "Pore_Closure"]
+      ],
+      "forbidden_edges": [
+        ["Low_Temperature", "Pore_Closure"],
+        ["Short_Residence_Time", "Cumulative_Sintering"]
+      ],
+      "key_indicators": [
+        "Wall_Temperature_Above_700C",
+        "Porosity_Loss_Risk_Above_0.3",
+        "Gold_Recovery_Below_85_Pct"
+      ],
+      "interventions": {
+        "do_increase_quench_air": {
+          "action": "Increase staged air injection to cool roasting zone below 680C",
+          "expected_effect": "Temperature drops 30-50C, porosity preserved, gold recovery > 90%",
+          "feasibility": "Primary control lever — adjust fan dampers"
+        },
+        "do_reduce_feed_rate": {
+          "action": "Reduce sulfide feed rate to decrease exothermic heat generation",
+          "expected_effect": "Less heat generated, easier temperature control",
+          "feasibility": "Reduces throughput but protects recovery"
+        },
+        "do_NOT_increase_insulation": {
+          "action": "DO NOT add insulation to roaster (opposite of lime!)",
+          "expected_effect": "Would TRAP exothermic heat, INCREASING sintering risk",
+          "feasibility": "Counter-intuitive: in gold roasting, heat LOSS through walls is beneficial"
+        }
+      }
+    },
+
+    "arsenic_volatilization": {
+      "full_name": "Arsenic Volatilization and Environmental Control",
+      "description": "Arsenian pyrite releases As2O3 vapor during roasting. Must be captured by scrubbers. Nevada DEP limits: < 0.5 mg/Nm3 at stack.",
+      "governing_reaction": "2FeAsS + 5O2 -> Fe2O3 + As2O3(g) + 2SO2",
+      "volatilization_temp_c": 400,
+      "required_edges": [
+        ["Temperature", "Arsenic_Volatilization_Rate"],
+        ["Arsenic_Content", "As2O3_Production"],
+        ["As2O3_Production", "Scrubber_Load"],
+        ["Scrubber_Load", "Stack_Emissions"],
+        ["Stack_Emissions", "Environmental_Compliance"]
+      ],
+      "key_indicators": [
+        "As2O3_Above_Scrubber_Capacity",
+        "Scrubber_Efficiency_Below_98_Pct"
+      ]
+    },
+
+    "carbon_preg_robbing": {
+      "full_name": "Carbon Preg-Robbing (Double Refractory Ore)",
+      "description": "Organic carbon in ore adsorbs dissolved gold during cyanide leaching, reducing recovery. If Keter classifies ore as 'high-carbon' / 'double-refractory', the roasting temperature must be high enough to burn off carbon — but not so high as to cause sintering. Narrow operating window: 620-680C.",
+      "carbon_burnoff_temp_c": 600,
+      "sintering_limit_c": 700,
+      "operating_window_c": [620, 680],
+      "keter_ore_types": {
+        "high_carbon": {
+          "carbon_pct_range": [2.0, 8.0],
+          "penalty_multiplier": 2.0,
+          "_comment": "Double penalty for low temperature — must burn carbon"
+        },
+        "low_carbon": {
+          "carbon_pct_range": [0.0, 2.0],
+          "penalty_multiplier": 1.0,
+          "_comment": "Standard operation — no carbon issue"
+        },
+        "argillite": {
+          "carbon_pct_range": [0.5, 3.0],
+          "penalty_multiplier": 1.5,
+          "clay_sintering_offset_c": -20,
+          "_comment": "Clay minerals lower sintering threshold by ~20C"
+        }
+      },
+      "required_edges": [
+        ["Carbon_Content", "Preg_Robbing_Risk"],
+        ["Low_Temperature", "Incomplete_Carbon_Burnoff"],
+        ["Incomplete_Carbon_Burnoff", "High_Preg_Robbing"],
+        ["High_Preg_Robbing", "Low_Gold_Recovery"],
+        ["Keter_Ore_Type", "Carbon_Content_Estimate"],
+        ["Carbon_Content_Estimate", "Temperature_Target_Adjustment"]
+      ]
+    }
+  }
+}

@@ -1,0 +1,103 @@
+# Keter Pipeline Configuration
+# =============================
+
+project:
+  name: "Keter"
+  author: "Kubaba Labs Inc."
+  version: "2.0.0"
+
+paths:
+  output_dir: "./output"
+  data_dir: "./data"
+  models_dir: "./models"
+
+cloud:
+  storage_backend: "gcs"
+  bucket: "khalomot-keter-prod-au"
+  project: "khalomot-production"
+  prefix: ""
+
+data_paths:
+  primary_data: "primary.xlsx"
+  minory_data: "minory.xlsx"
+  coordinates: "coordinates.xlsx"
+
+data:
+  drop_missing: true
+  min_samples: 10
+  id_column: "SAMPLEID"
+  exclude_columns: ["X", "Y", "Z"]
+
+normalization:
+  method: "ef"  # Enrichment Factor (EF = ppm / Clarke)
+  assume_ppm: true
+  anomaly_threshold: 3.0  # EF > 3 = anomalous
+  apply_clr: false  # Optional CLR on top of EF (fixes compositional closure)
+
+target:
+  lat: -23.9
+  lon: 31.1
+  target_layer: null                        # optional commodity filter (e.g. "gold", "ree")
+  fingerprint_path: "keter_fingerprint.json" # path in cloud bucket root
+  age_ma: null                                # geological age in Ma (optional — future: auto-lookup from GPlates)
+  tectonic_cartridge: "tectonic_cartridge.json"  # Layer 0 tectonic rules
+  max_neighbors: 10
+  distance_decay_km: 500.0                   # half-weight distance for spatial prior
+  geo_weight: 0.3                            # max geographic bonus (0..1), chemistry dominates
+
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+
+# RL Agent Configuration
+rl_agent:
+  enabled: true
+  model_path: "models/keter_rl_agent_sb3.zip"
+  training_data: "tectonic_training_data.csv"
+  episodes: 2000
+  learning_rate: 3.0e-4
+  gamma: 0.99
+  episode_length: 64
+
+# Model Selector (Gating Mechanism)
+model_selector:
+  signal_threshold: 5          # min anomalies for CausalPINN path
+  contrast_threshold: 30       # min max/median ratio for CausalPINN
+  noise_ceiling: 0.5           # max CV for CausalPINN
+
+# Soft Activation Parameters
+soft_activation:
+  default_k: 0.15              # sigmoid steepness (higher = sharper)
+  global_ef_center: 3.0        # default EF center for elements
+
+# MCDA Evaluation Parameters
+mcda:
+  enabled: true
+  weights:
+    Au: 4.0
+    BWI: 2.0
+    TOC: 2.5
+    As: 1.5
+    Sb: 3.0
+    Hg: 1.0
+    Tl: 1.0
+  thresholds:
+    Au_target: 10.0   # ppm
+    BWI_target: 12.0  # kWh/t
+    BWI_max: 18.0     # kWh/t
+    TOC_target: 1.0   # wt%
+    TOC_max: 3.5      # wt%
+    As_target: 200.0  # ppm
+    As_max: 1000.0    # ppm
+    Sb_target: 50.0   # ppm
+    Sb_max: 200.0     # ppm
+    Hg_target: 2.0    # ppm
+    Hg_max: 20.0      # ppm
+    Tl_target: 1.0    # ppm
+    Tl_max: 10.0      # ppm
+  betas:
+    base_bwi: 12.0
+    quartz: 0.10
+    carbonates: -0.05
+
+

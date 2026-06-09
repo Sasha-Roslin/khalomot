@@ -1,0 +1,35 @@
+[
+  {
+    "id": "INC-2025-01",
+    "date": "2025-10-14",
+    "site": "Carlin East Fluid Bed Roaster A",
+    "ore_subtype": "high_carbon",
+    "associated_cluster": 3,
+    "incident_type": "Environmental Violation - Arsenic Volatilization",
+    "description": "Stack volatile As2O3 emissions spiked to 0.72 mg/Nm3, exceeding the Nevada DEP Title V limit of 0.50 mg/Nm3. The feed ore contained high pyrite and active organic carbon (TOC > 3.5%) (high carbon). The kiln operator attempted to run under low excess air (28%) to save thermal efficiency.",
+    "root_cause": "Low Excess Combustion Air (under 32%) prevented complete oxidation of arsenic sulfides into stable, non-volatile iron arsenate (FeAsO4), causing arsenic to escape as gaseous As2O3.",
+    "corrective_actions": "Maintain Excess Air above 33.5% and increase tertiary quench air temperature to ensure legal stack compliance for high-arsenic/high-pyrite feeds."
+  },
+  {
+    "id": "INC-2025-02",
+    "date": "2025-11-02",
+    "site": "Carlin North CFB Roaster B",
+    "ore_subtype": "argillite",
+    "associated_cluster": 1,
+    "incident_type": "Pyro-Metallurgical Sintering Collapse",
+    "description": "Severe clay sintering occurred in the upper calcining zone, collapsing the roasted ore porosity and reducing downstream cyanide recovery to 68.2%. The bed temperature was operated at 730°C.",
+    "root_cause": "High clay and carbonate content (carbonates > 8.0%, quartz < 60%) experienced solid-state mineral sintering when roasting wall temperatures exceeded 680°C under low tertiary air quenching.",
+    "corrective_actions": "Impose a strict roasting wall temperature limit of 680°C for clay-rich argillite ores. Increase quench air flow to reduce calcining wall temps if carbonates exceed 8.0%."
+  },
+  {
+    "id": "INC-2026-03",
+    "date": "2026-01-22",
+    "site": "Carlin West Roaster C",
+    "ore_subtype": "low_carbon",
+    "associated_cluster": 0,
+    "incident_type": "Gold Recovery Deficit (Preg-Robbing)",
+    "description": "Gold recovery fell to 80.4% despite successful sulfide oxidation. The ore contained sub-microscopic organic carbon (TOC) that was not fully deactivated. Corresponds to low carbon",
+    "root_cause": "Feed rate was too high (110 TPH) and wall temperatures were too low (under 610°C), resulting in incomplete combustion of active carbonaceous matter (preg-robbing TCM). The active carbon adsorbed gold-cyanide complexes during leaching.",
+    "corrective_actions": "Enforce a minimum roasting temp of 630°C for carbonaceous ores. Reduce feed rate to 95 TPH to increase resident residence time."
+  }
+]
